@@ -2,6 +2,7 @@ from flask import Flask,Blueprint, jsonify, request  #pip3 install flask
 from flask_cors import CORS
 import psycopg2   #pip install psycopg2  
 from datetime import datetime
+import movies
 
 app = Flask(__name__)
 # Enable CORS for all routes
@@ -56,29 +57,17 @@ def create_profile():
 
 @app.route('/movies', methods=['GET'])
 def get_movies():
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM movies")
-    movies_data = cur.fetchall()
-    cur.close()
-    dataToReturn = []
-    for movieRaw in movies_data:
-        movie = {'id': movieRaw[0], 'title': movieRaw[1], 'year': movieRaw[2]}
-        dataToReturn.append(movie)
-    return jsonify(dataToReturn)
+    movie_data = movies.get_movies()
+    if movie_data is None:
+        return jsonify({'error': 'Movie not found'}), 404
+    return jsonify(movie_data)
 
 @app.route('/movie/<int:movie_id>', methods=['GET'])
 def get_movie(movie_id):
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM movies WHERE id = %s", (movie_id,))
-    movie_data = cur.fetchone()
-    cur.close()
-
+    movie_data = movies.get_movie_details(movie_id)
     if movie_data is None:
         return jsonify({'error': 'Movie not found'}), 404
-
-    movie = {'id': movie_data[0], 'title': movie_data[1], 'year': movie_data[2]}
-    return jsonify(movie)
-
+    return jsonify(movie_data)
 
 if   __name__ ==   "__main__" :   
         app.run( host='127.0.0.1', port=8080, debug=False)

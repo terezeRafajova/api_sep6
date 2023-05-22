@@ -29,3 +29,27 @@ python3 main.py
 gcloud app deploy
 python3 main.py
 gcloud app deploy
+git 
+git user
+git config
+git config --global
+git config user.email terezarafajova2@gmail.com
+git commit 
+git config user.email "terezarafajova2@gmail.com"
+git commit 
+git config user.name terezeRafajova
+git commit 
+git push 
+$ git remote add PythonAPISep6 'www.github.com/terezeRafajova/api_sep6'
+git push 
+git config user.email "terezarafajova2@gmail.com"
+git config user.name terezeRafajova
+git remote add origin https://github.com/terezeRafajova/api_sep6.git
+git branch -M main
+git push -u origin main
+git remote add origin https://github.com/terezeRafajova/api_sep6.git
+git push -u origin main
+pip install requests
+python3 main.py
+python main.py
+gcloud app deploy
