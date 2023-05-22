@@ -42,12 +42,12 @@ def get_movie_details(movie_id):
                 if crewMember['known_for_department'] == 'Directing':
                     idDirector = crewMember['id']
                     nameDirector = crewMember['name']
-                    director = {'id': idDirector, 'name': nameDirector}
+                    director = {'id': idDirector, 'name': nameDirector, 'character': 'No character'}
                     directors.append(director)
                 if crewMember['known_for_department'] == 'Writing':
                     idWritor = crewMember['id']
                     nameWritor = crewMember['name']
-                    writer = {'id': idWritor, 'name': nameWritor}
+                    writer = {'id': idWritor, 'name': nameWritor, 'character': 'No character'}
                     writers.append(writer)
         #make movie back
         movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
