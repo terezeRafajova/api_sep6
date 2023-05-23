@@ -53,3 +53,6 @@ pip install requests
 python3 main.py
 python main.py
 gcloud app deploy
+git push -u origin main
+python main.py
+gcloud app deploy

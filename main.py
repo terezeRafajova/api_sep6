@@ -69,5 +69,12 @@ def get_movie(movie_id):
         return jsonify({'error': 'Movie not found'}), 404
     return jsonify(movie_data)
 
+@app.route('/searchmovie/<string:movie_title>', methods=['GET'])
+def search_movies(movie_title):
+    movie_data = movies.search_movies(movie_title)
+    if movie_data is None:
+        return jsonify({'error': 'Movie not found'}), 404
+    return jsonify(movie_data)
+
 if   __name__ ==   "__main__" :   
         app.run( host='127.0.0.1', port=8080, debug=False)

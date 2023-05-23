@@ -85,3 +85,32 @@ def get_movies():
         return movies 
     else:
         return None
+
+def search_movies(movie_title):
+    api_key = '75add5038773025e1132ea7f985ec4b5'
+    url = f'https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={movie_title}'
+
+    movies = []
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        results = data.get('results', [])
+        if not results:
+                movies
+        for movie_data in results:
+            #only take data we want 
+            id = movie_data['id']
+            language = movie_data['original_language']
+            title = movie_data['title']
+            poster_raw = movie_data['poster_path']
+            image = f'https://image.tmdb.org/t/p/original/{poster_raw}'
+            overview = movie_data['overview']
+            release_date = movie_data['release_date']
+            voting_avg = movie_data['vote_average']
+            vote_count = movie_data['vote_count']
+            movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
+            'image': image, 'overview': overview, 'voting_avg': voting_avg, 'vote_count': vote_count}
+            movies.append(movie)
+        return movies 
+    else:
+        return None
