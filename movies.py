@@ -15,8 +15,6 @@ def get_movie_details(movie_id):
         image = f'https://image.tmdb.org/t/p/original/{poster_raw}'
         overview = movie_data['overview']
         release_date = movie_data['release_date']
-        voting_avg = movie_data['vote_average']
-        vote_count = movie_data['vote_count']
         #genres
         genres = []
         genresData = movie_data.get('genres', [])
@@ -51,8 +49,26 @@ def get_movie_details(movie_id):
                     writers.append(writer)
         #make movie back
         movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
-        'image': image, 'overview': overview, 'voting_avg': voting_avg, 'vote_count': vote_count,
-        'genres': genres,'actors': actors, 'directors': directors, 'writers': writers}
+        'image': image, 'overview': overview,'genres': genres,'actors': actors, 'directors': directors, 'writers': writers}
+        return movie 
+    else:
+        return None
+def get_movie_no_details(movie_id):
+    api_key = '75add5038773025e1132ea7f985ec4b5'
+    url = f'https://api.themoviedb.org/3/movie/{movie_id}?api_key={api_key}'
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        movie_data = response.json()
+        id = movie_data['id']
+        language = movie_data['original_language']
+        title = movie_data['title']
+        poster_raw = movie_data['poster_path']
+        image = f'https://image.tmdb.org/t/p/original/{poster_raw}'
+        overview = movie_data['overview']
+        release_date = movie_data['release_date']
+        movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
+        'image': image, 'overview': overview}
         return movie 
     else:
         return None
@@ -77,10 +93,8 @@ def get_movies():
             image = f'https://image.tmdb.org/t/p/original/{poster_raw}'
             overview = movie_data['overview']
             release_date = movie_data['release_date']
-            voting_avg = movie_data['vote_average']
-            vote_count = movie_data['vote_count']
             movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
-            'image': image, 'overview': overview, 'voting_avg': voting_avg, 'vote_count': vote_count}
+            'image': image, 'overview': overview}
             movies.append(movie)
         return movies 
     else:
@@ -106,10 +120,8 @@ def search_movies(movie_title):
             image = f'https://image.tmdb.org/t/p/original/{poster_raw}'
             overview = movie_data['overview']
             release_date = movie_data['release_date']
-            voting_avg = movie_data['vote_average']
-            vote_count = movie_data['vote_count']
             movie = {'id': id, 'title': title, 'language': language, 'release_date': release_date,
-            'image': image, 'overview': overview, 'voting_avg': voting_avg, 'vote_count': vote_count}
+            'image': image, 'overview': overview}
             movies.append(movie)
         return movies 
     else:

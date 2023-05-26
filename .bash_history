@@ -56,3 +56,16 @@ gcloud app deploy
 git push -u origin main
 python main.py
 gcloud app deploy
+git push -u origin main
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
