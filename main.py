@@ -21,65 +21,78 @@ def home():
 #---------------profiles----------------------
 @app.route('/profiles', methods=['GET'])
 def get_profiles():
-    cur = conn.cursor()
-    cur.execute("SELECT first_name, last_name, username, created_on, age, likedMovies, likedProfiles FROM profiles")
-    profile_data = cur.fetchall()
-    cur.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT first_name, last_name, username, created_on, age, likedMovies, likedProfiles FROM profiles")
+        profile_data = cur.fetchall()
+        cur.close()
 
-    dataToReturn = []
-    for profileRaw in profile_data:
-        profile = {
-            'first_name': profileRaw[0],
-            'last_name': profileRaw[1],
-            'username': profileRaw[2],
-            'created_on': profileRaw[3],
-            'age': profileRaw[4],
-            'likedMovies': profileRaw[5],
-            'likedProfiles': profileRaw[6]
-        }
-        dataToReturn.append(profile)
-
-    return jsonify(dataToReturn)
+        dataToReturn = []
+        for profileRaw in profile_data:
+            profile = {
+                'first_name': profileRaw[0],
+                'last_name': profileRaw[1],
+                'username': profileRaw[2],
+                'created_on': profileRaw[3],
+                'age': profileRaw[4],
+                'likedMovies': profileRaw[5],
+                'likedProfiles': profileRaw[6]
+            }
+            dataToReturn.append(profile)
+        return jsonify(dataToReturn)
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400
 
 @app.route('/profile/<string:username>', methods=['GET'])
 def get_profile_by_username(username):
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM profiles WHERE username = %s", (username,))
-    profile_data = cur.fetchall()
-    cur.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM profiles WHERE username = %s", (username,))
+        profile_data = cur.fetchall()
+        cur.close()
 
-    dataToReturn = []
-    for profileRaw in profile_data:
-        profile = {
-            'first_name': profileRaw[0],
-            'last_name': profileRaw[1],
-            'username': profileRaw[2],
-            'created_on': profileRaw[3],
-            'age': profileRaw[4],
-            'likedMovies': profileRaw[5],
-            'likedProfiles': profileRaw[6]
-        }
-        dataToReturn.append(profile)
-
-    return jsonify(dataToReturn)
+        dataToReturn = []
+        for profileRaw in profile_data:
+            profile = {
+                'first_name': profileRaw[0],
+                'last_name': profileRaw[1],
+                'username': profileRaw[2],
+                'created_on': profileRaw[3],
+                'age': profileRaw[4],
+                'likedMovies': profileRaw[5],
+                'likedProfiles': profileRaw[6]
+            }
+            dataToReturn.append(profile)
+        return jsonify(dataToReturn)
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400
 
 @app.route('/profile', methods=['POST'])
 def create_profile():
-    data = request.json
-    age = data.get('age')
-    first_name = data.get('first_name')
-    last_name = data.get('last_name')
-    username = data.get('username')
+    try:
+        data = request.json
+        age = data.get('age')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        username = data.get('username')
 
-    if not age or not first_name or not last_name or not username:
-        return jsonify({'error': 'Invalid request. Write required fields.'}), 400
- 
-    cur = conn.cursor()
-    cur.execute("INSERT INTO profiles (first_name, last_name, username, age) VALUES (%s,%s,%s,%s)", (first_name, last_name, username, age))
-    conn.commit()
-    cur.close()
-
-    return jsonify({'message': 'Profile created'}), 201
+        if not age or not first_name or not last_name or not username:
+            return jsonify({'error': 'Invalid request. Write required fields.'}), 400
+    
+        cur = conn.cursor()
+        cur.execute("INSERT INTO profiles (first_name, last_name, username, age) VALUES (%s,%s,%s,%s)", (first_name, last_name, username, age))
+        conn.commit()
+        cur.close()
+        return jsonify({'message': 'Profile created'}), 201
+    
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400
 
 @app.route('/profile/like', methods=['POST'])
 def like_profile():
@@ -105,7 +118,6 @@ def like_profile():
         cur.execute("UPDATE profiles SET likedProfiles = %s WHERE username = %s", (liked_profiles, current_username))
         conn.commit()
         cur.close()
-        
         return jsonify({'message': 'Profile liked'}), 201
 
     except (psycopg2.Error, Exception) as error:
@@ -126,7 +138,6 @@ def getLikedMovies(username):
             for movie_id in movie_ids_data[0]:
                 movie = movies.get_movie_no_details(movie_id)
                 moviesToReturn.append(movie)
-        
         return jsonify(moviesToReturn)
         
     except (psycopg2.Error, Exception) as error:
@@ -158,7 +169,6 @@ def likeMovie():
         cur.execute("UPDATE profiles SET likedMovies = %s WHERE username = %s", (liked_movies, username))
         conn.commit()
         cur.close()
-        
         return jsonify({'message': 'Movie liked'}), 201
 
     except (psycopg2.Error, Exception) as error:
@@ -166,30 +176,113 @@ def likeMovie():
         print("An error occurred:", error)
         return jsonify({'error': "error"}), 400    
 
-#not tested
-@app.route('/likedprofiles/<string:username>', methods=['GET'])
+@app.route('/profiles/<string:username>/liked', methods=['GET'])
 def getLikedProfiles(username):
-    cur = conn.cursor()
-    cur.execute("SELECT first_name, last_name, username, created_on, age, likedMovies, likedProfiles FROM profiles where username in (select likedProfiles from profiles where username ={username} )")
-    profile_data = cur.fetchall()
-    cur.close()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM profiles WHERE username = ANY (SELECT unnest(likedProfiles) FROM profiles WHERE username = %s)", (username,))
+        profile_data = cur.fetchall()
+        cur.close()
 
-    dataToReturn = []
-    for profileRaw in profile_data:
-        profile = {
-            'first_name': profileRaw[0],
-            'last_name': profileRaw[1],
-            'username': profileRaw[2],
-            'created_on': profileRaw[3],
-            'age': profileRaw[4],
-            'likedMovies': profileRaw[5],
-            'likedProfiles': profileRaw[6]
-        }
-        dataToReturn.append(profile)
+        dataToReturn = []
+        for profileRaw in profile_data:
+            profile = {
+                'first_name': profileRaw[0],
+                'last_name': profileRaw[1],
+                'username': profileRaw[2],
+                'created_on': profileRaw[3],
+                'age': profileRaw[4],
+                'likedMovies': profileRaw[5],
+                'likedProfiles': profileRaw[6]
+            }
+            dataToReturn.append(profile)
+        return jsonify(dataToReturn)
 
-    return jsonify(dataToReturn)
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400
 
+#--------------------reviews-------------------
+@app.route('/review', methods=['POST'])
+def create_review():
+    try:
+        data = request.json
+        movie_id = data.get('movie_id')
+        username = data.get('username')
+        description = data.get('description')
+        rating = data.get('rating')
 
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM reviews WHERE movie_id = %s AND username = %s", (movie_id, username))
+        review_count = cur.fetchone()[0]
+        if review_count > 0:
+            cur.close()
+            return jsonify({'error': 'Review already exists'}), 409
+
+        if not movie_id or not username or not description or not rating:
+            return jsonify({'error': 'Invalid request. Write required fields.'}), 400
+    
+        cur = conn.cursor()
+        cur.execute("INSERT INTO reviews (movie_id, username, description, rating) VALUES (%s,%s,%s,%s)", (movie_id, username, description, rating))
+        conn.commit()
+        cur.close()
+        return jsonify({'message': 'Review created'}), 201
+
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400    
+
+@app.route('/reviews/movie/<int:movie_id>', methods=['GET'])
+def getReviewsForMovie(movie_id):
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM reviews WHERE movie_id = %s", (movie_id,))
+        review_data = cur.fetchall()
+        cur.close()
+
+        dataToReturn = []
+        for reviewRaw in review_data:
+            review = {
+                'movie_id': reviewRaw[0],
+                'username': reviewRaw[1],
+                'description': reviewRaw[2],
+                'created_on': reviewRaw[3],
+                'rating': reviewRaw[4]
+            }
+            dataToReturn.append(review)
+        return jsonify(dataToReturn)
+
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400 
+
+@app.route('/reviews/username/<string:username>', methods=['GET'])
+def getReviewsOfFollowers(username):
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM reviews WHERE username = ANY (SELECT unnest(likedProfiles) FROM profiles WHERE username = %s)", (username,))
+        review_data = cur.fetchall()
+        cur.close()
+
+        dataToReturn = []
+        for reviewRaw in review_data:
+            review = {
+                'movie_id': reviewRaw[0],
+                'username': reviewRaw[1],
+                'description': reviewRaw[2],
+                'created_on': reviewRaw[3],
+                'rating': reviewRaw[4]
+            }
+            dataToReturn.append(review)
+        return jsonify(dataToReturn)
+
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400 
 #-------------------------------------------------------movies---------------
 
 @app.route('/movies', methods=['GET'])

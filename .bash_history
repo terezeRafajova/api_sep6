@@ -69,3 +69,12 @@ python main.py
 gcloud app deploy
 python main.py
 gcloud app deploy
+git config user.email "terezarafajova2@gmail.com"
+git config user.name terezeRafajova
+git commit 
+git commit -m"profile methods"
+git push -u origin main
+python main.py
+gcloud app deploy
+python main.py
+gcloud app deploy
