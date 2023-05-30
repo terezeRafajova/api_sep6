@@ -78,3 +78,7 @@ python main.py
 gcloud app deploy
 python main.py
 gcloud app deploy
+git commit -m"reviews and profile calls"
+git push -u origin main
+python main.py
+gcloud app deploy

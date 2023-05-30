@@ -103,7 +103,15 @@ def like_profile():
         
         if not current_username or not liked_username:
             return jsonify({'error': 'Invalid request. Write required fields.'}), 400
-    
+
+        # Check if the user has already liked the profile
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM profiles WHERE username = %s AND %s = any (likedProfiles)", (current_username, liked_username))
+        existing_like = cur.fetchone()
+        cur.close()
+
+        if existing_like:
+            return jsonify({'message': 'You have already liked this movie.'}), 200
         cur = conn.cursor()
         cur.execute("SELECT likedProfiles FROM profiles WHERE username = %s", (current_username,))
         profile_data = cur.fetchone()
@@ -155,6 +163,15 @@ def likeMovie():
         if not likedMovie or not username:
             return jsonify({'error': 'Invalid request. Write required fields.'}), 400
     
+        # Check if the user has already liked the movie
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM profiles WHERE username = %s AND %s = any (likedMovies)", (username, likedMovie))
+        existing_like = cur.fetchone()
+        cur.close()
+
+        if existing_like:
+            return jsonify({'message': 'You have already liked this movie.'}), 200
+        
         cur = conn.cursor()
         cur.execute("SELECT likedMovies FROM profiles WHERE username = %s", (username,))
         movie_data = cur.fetchone()
@@ -209,10 +226,12 @@ def create_review():
     try:
         data = request.json
         movie_id = data.get('movie_id')
+        movie_title = movies.get_movie_no_details(movie_id)['title']
         username = data.get('username')
-        description = data.get('description')
+        description = movie_title +": " + data.get('description')
         rating = data.get('rating')
 
+        #check if review already exists 
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM reviews WHERE movie_id = %s AND username = %s", (movie_id, username))
         review_count = cur.fetchone()[0]
@@ -278,6 +297,53 @@ def getReviewsOfFollowers(username):
             }
             dataToReturn.append(review)
         return jsonify(dataToReturn)
+
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400 
+
+@app.route('/reviews/username/<string:username>/mine', methods=['GET'])
+def getMyReviews(username):
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM reviews WHERE username =  %s", (username,))
+        review_data = cur.fetchall()
+        cur.close()
+
+        dataToReturn = []
+        for reviewRaw in review_data:
+            review = {
+                'movie_id': reviewRaw[0],
+                'username': reviewRaw[1],
+                'description': reviewRaw[2],
+                'created_on': reviewRaw[3],
+                'rating': reviewRaw[4]
+            }
+            dataToReturn.append(review)
+        return jsonify(dataToReturn)
+
+    except (psycopg2.Error, Exception) as error:
+        # Handle the error
+        print("An error occurred:", error)
+        return jsonify({'error': "error"}), 400
+
+@app.route('/reviews/username/<string:username>/average', methods=['GET'])
+def getMyAvarageReview(username):
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM reviews WHERE username =  %s", (username,))
+        review_data = cur.fetchall()
+        cur.close()
+
+        sumAvr = 0
+        n = 0
+        for reviewRaw in review_data:
+            rating = reviewRaw[4] #getRating
+            sumAvr+= rating
+            n+=1
+        avarage = sumAvr/n
+        return jsonify({'avarage': avarage})
 
     except (psycopg2.Error, Exception) as error:
         # Handle the error
